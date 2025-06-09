@@ -60,30 +60,80 @@ def create_accounts():
 ######################################################################
 # LIST ALL ACCOUNTS
 ######################################################################
+@app.route("/accounts", methods=["GET"])
+def list_accounts():
+    """
+    Lists all accounts
+    This endpoint returns a list of all stored accounts.
+    """
+    app.logger.info("Request to list all accounts")
 
-# ... place you code here to LIST accounts ...
+    accounts = Account.all()  # Retrieves all accounts from the database
+    account_list = [account.serialize() for account in accounts]
+
+    return jsonify(account_list), status.HTTP_200_OK
+
 
 
 ######################################################################
 # READ AN ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["GET"])
+def get_accounts(account_id):
+    """
+    Reads an Account
+    This endpoint will read an Account based the account_id that is requested
+    """
+    app.logger.info("Request to read an Account with id: %s", account_id)
 
-# ... place you code here to READ an account ...
+    account = Account.find(account_id)
+    if not account:
+        abort(status.HTTP_404_NOT_FOUND, f"Account with id [{account_id}] could not be found.")
+
+    return account.serialize(), status.HTTP_200_OK
 
 
 ######################################################################
 # UPDATE AN EXISTING ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["PUT"])
+def update_account(account_id):
+    """
+    Updates an existing Account
+    This endpoint updates an Account based on the provided account_id and request data.
+    """
+    app.logger.info("Request to update Account with id: %s", account_id)
 
-# ... place you code here to UPDATE an account ...
+    # Find the account in the database
+    account = Account.find(account_id)
+    if not account:
+        abort(status.HTTP_404_NOT_FOUND, f"Account with id [{account_id}] could not be found.")
+
+    # Validate the request data and update the account
+    check_content_type("application/json")
+    account.deserialize(request.get_json())
+    account.update()
+
+    # Return the updated account data
+    return jsonify(account.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
 # DELETE AN ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["DELETE"])
+def delete_account(account_id):
+    """
+    Deletes an Account
+    This endpoint deletes an Account based on the provided account_id.
+    """
+    app.logger.info("Request to delete Account with id: %s", account_id)
 
-# ... place you code here to DELETE an account ...
+    account = Account.find(account_id)
+    if account:
+        account.delete()
 
+    return "", status.HTTP_204_NO_CONTENT
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
